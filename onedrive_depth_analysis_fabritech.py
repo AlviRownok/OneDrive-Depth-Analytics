@@ -35,16 +35,24 @@ if uploaded_file is not None:
     # Check if this is a local folder structure (look for the 'Folder Path' column) or OneDrive ('Percorso')
     if 'Folder Path' in df.columns:
         st.write("Local folder structure detected.")
-        # For local folders, calculate depth based on 'Folder Path'
-        def calculate_depth_local(path):
-            return path.count('\\')
+        # Ask user to select the folder from which depth calculation should begin
+        folder_input = st.text_input("Enter the folder name from which depth calculation should begin:")
 
-        df['depth_level'] = df['Folder Path'].apply(calculate_depth_local)
+        if folder_input:
+            # For local folders, calculate depth based on 'Folder Path' and user-specified folder
+            def calculate_depth_local(path, folder_name):
+                if folder_name in path:
+                    # Only count folders after the specified folder name
+                    return path.split(folder_name, 1)[1].count('\\')
+                else:
+                    return 0
 
-        # Plot: Depth Level Distribution
-        plot_1 = px.histogram(df, x='depth_level', title="Depth Level Distribution (Local Folders)",
-                              color_discrete_sequence=['#0078d4'])
-        st.plotly_chart(plot_1)
+            df['depth_level'] = df['Folder Path'].apply(lambda x: calculate_depth_local(x, folder_input))
+
+            # Plot: Depth Level Distribution
+            plot_1 = px.histogram(df, x='depth_level', title="Depth Level Distribution (Local Folders)",
+                                  color_discrete_sequence=['#0078d4'])
+            st.plotly_chart(plot_1)
 
     elif 'Percorso' in df.columns:
         st.write("OneDrive folder structure detected.")
