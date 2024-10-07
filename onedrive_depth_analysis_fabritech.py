@@ -18,6 +18,15 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Function to detect delimiter
+def detect_delimiter(file):
+    # Read a small portion of the file to detect delimiter
+    sample = file.read(2048).decode('ISO-8859-1')
+    file.seek(0)  # Reset file pointer after reading
+    if ';' in sample:
+        return ';'
+    return ','
+
 # Title of the app
 st.title("Folder Depth Calculator")
 
@@ -25,8 +34,11 @@ st.title("Folder Depth Calculator")
 uploaded_file = st.file_uploader("Upload your CSV file", type="csv")
 
 if uploaded_file is not None:
-    # Read the CSV file
-    df = pd.read_csv(uploaded_file, encoding='ISO-8859-1')
+    # Detect delimiter automatically
+    delimiter = detect_delimiter(uploaded_file)
+
+    # Read the CSV file using the detected delimiter
+    df = pd.read_csv(uploaded_file, delimiter=delimiter, encoding='ISO-8859-1')
 
     # Preview the first few rows
     st.write("Preview of the first 30 entries in the file:")
