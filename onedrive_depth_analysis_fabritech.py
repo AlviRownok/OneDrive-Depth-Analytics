@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.io as pio
+import os
 
 # Set the OneDrive-like color theme (white background, blue text)
 st.markdown(
@@ -26,6 +27,13 @@ def detect_delimiter(file):
     if ';' in sample:
         return ';'
     return ','
+
+# Function to determine if a path points to a file or a folder (based on extensions)
+def classify_item(path):
+    if os.path.splitext(path)[1]:  # Check if there's a file extension
+        return 'File'
+    else:
+        return 'Folder'
 
 # Title of the app
 st.title("Folder Depth Calculator")
@@ -65,10 +73,12 @@ if uploaded_file is not None:
                     return 0
 
             df['depth_level'] = df['Folder Path'].apply(lambda x: calculate_depth_local(x, folder_input))
+            # Classify each entry as either 'File' or 'Folder'
+            df['Item Type'] = df['Folder Path'].apply(classify_item)
 
-            # Plot: Depth Level Distribution
-            plot_1 = px.histogram(df, x='depth_level', title="Depth Level Distribution (Local Folders)",
-                                  color_discrete_sequence=['#0078d4'])
+            # Plot: Depth Level Distribution (with distinction between Files and Folders)
+            plot_1 = px.histogram(df, x='depth_level', color='Item Type', title="Depth Level Distribution (Local Folders and Files)",
+                                  color_discrete_sequence=['#0078d4', '#00a1f1'])  # Blue theme
             st.plotly_chart(plot_1)
 
     elif 'Percorso' in df.columns:
